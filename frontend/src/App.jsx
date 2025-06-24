@@ -125,12 +125,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-neutral-900 px-4 py-8 relative overflow-hidden">
-      {/* Animated Blur Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-4 left-1/4 w-86 h-60 bg-green-500/40 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-pink-500/25 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
-        <div className="absolute bottom-1/3 right-1/3 w-64 h-64 bg-indigo-500/25 rounded-full blur-3xl animate-pulse delay-500"></div>
+      {/* Single Blur Background - aligned with card */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="w-full max-w-3xl h-96 bg-gradient-to-br from-indigo-400/30 via-violet-400/20 to-fuchsia-400/25 rounded-3xl blur-3xl"></div>
       </div>
 
       {/* Main Content - with backdrop blur */}
@@ -167,7 +164,7 @@ function App() {
                     ) : apiStatus ? (
                       <>
                         <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                        <span className="text-green-400 text-base">Connected to Backend - Ready to Archive</span>
+                        <span className="text-green-400 text-base">Connected - Ready to Archive</span>
                       </>
                     ) : (
                       <>
@@ -308,7 +305,7 @@ function App() {
             
             {/* Status Bar - shows when archiving is complete OR when viewing existing snapshots */}
             {(archivedLink || (showDropdown && Array.isArray(existingSnapshots) && existingSnapshots.length > 0)) && (
-              <div className="bg-gradient-to-r from-green-400 to-emerald-500 px-12 py-6">
+              <div className="bg-gradient-to-r from-green-400 to-emerald-500 px-12 py-6 rounded-b-3xl">
                 <div className="flex items-center justify-center space-x-3">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -322,7 +319,7 @@ function App() {
 
             {/* Red Status Bar - shows when no snapshots exist */}
             {showDropdown && Array.isArray(existingSnapshots) && existingSnapshots.length === 0 && (
-              <div className="bg-gradient-to-r from-red-500 to-red-600 px-12 py-6">
+              <div className="bg-gradient-to-r from-red-500 to-red-600 px-12 py-6 rounded-b-3xl">
                 <div className="flex items-center justify-center space-x-3">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -336,7 +333,7 @@ function App() {
           {/* Description moved below */}
           <div className="text-center max-w-2xl">
             <p className="text-neutral-400 text-base leading-relaxed">
-              Capture and preserve any website as it appears right now. Our time machine creates a permanent snapshot that you can access anytime, even if the original site changes or disappears.
+              Capture and preserve any website. The time machine creates a permanent snapshot that you can access anytime, even if the original site changes or disappears.
             </p>
           </div>
         </div>
