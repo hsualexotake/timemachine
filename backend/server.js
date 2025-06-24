@@ -7,6 +7,7 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+
 app.use('/snapshots', express.static(path.join(__dirname, '..', 'archives')));
 
 // Serve static files from public directory

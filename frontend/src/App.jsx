@@ -34,18 +34,32 @@ function App() {
         </ul>
       </div>
       <div className="p-4 bg-white rounded shadow text-center w-full max-w-md">
-        <h3 className="font-bold mb-2">Backend Status</h3>
-        {loading ? (
-          <span className="text-gray-500">Loading...</span>
-        ) : apiStatus ? (
-          <>
-            <div className="text-green-600 font-semibold">{apiStatus.message}</div>
-            <div className="text-xs text-gray-400 mt-1">{apiStatus.timestamp}</div>
-          </>
-        ) : (
-          <span className="text-red-500">Could not connect to backend.</span>
-        )}
-      </div>
+  <h3 className="font-bold mb-2">Backend Status</h3>
+  {loading ? (
+    <span className="text-gray-500">Loading...</span>
+  ) : apiStatus ? (
+    <>
+      <div className="text-green-600 font-semibold">{apiStatus.message}</div>
+      <div className="text-xs text-gray-400 mt-1">{apiStatus.timestamp}</div>
+    </>
+  ) : (
+    <span className="text-red-500">Could not connect to backend.</span>
+  )}
+
+  {/* Snapshot Preview Link */}
+  <div className="mt-6">
+    <h4 className="font-semibold mb-1">Try a Snapshot</h4>
+    <a
+      href="http://localhost:3000/snapshots/httpbin.org/2025-06-23T21-39-06/index.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 underline"
+    >
+      View Snapshot (httpbin.org)
+    </a>
+  </div>
+</div>
+
     </div>
   );
 }
