@@ -6,17 +6,18 @@ const { URL } = require('url');
 
 /**
  * Downloads and rewrites assets in HTML files.
- * @param {Object} pages - Map of URL → HTML string
+ * @param {Object} pages - Map of URL → HTML string (will be modified in-place)
  * @param {string} baseDir - Directory to save rewritten HTML and assets
  */
 async function rewriteAndDownloadAssets(pages, baseDir) {
+  const assetDir = path.join(baseDir, 'assets');
+  fs.mkdirSync(assetDir, { recursive: true });
+
+  const assetMap = new Map(); // Map to avoid duplicate downloads
+
   for (const [url, html] of Object.entries(pages)) {
     const $ = cheerio.load(html);
     const pageUrl = new URL(url);
-    const assetDir = path.join(baseDir, 'assets');
-    fs.mkdirSync(assetDir, { recursive: true });
-
-    const assetMap = new Map(); // Map to avoid duplicate downloads
 
     const collectAndRewrite = (selector, attr) => {
       $(selector).each((_, el) => {
@@ -39,23 +40,20 @@ async function rewriteAndDownloadAssets(pages, baseDir) {
     collectAndRewrite('script[src]', 'src');
     collectAndRewrite('img[src]', 'src');
 
-    // Download all unique assets
-    for (const [remoteUrl, localPath] of assetMap.entries()) {
-      try {
-        const response = await axios.get(remoteUrl, { responseType: 'arraybuffer' });
-        fs.writeFileSync(localPath, response.data);
-        console.log(`📦 Downloaded asset: ${remoteUrl}`);
-      } catch (err) {
-        console.warn(`⚠️ Failed to download asset: ${remoteUrl} (${err.message})`);
-      }
-    }
+    // Update the pages object with rewritten HTML
+    pages[url] = $.html();
+    console.log(`🔄 Rewritten asset URLs for: ${url}`);
+  }
 
-    // Save updated HTML
-    const parsed = new URL(url);
-    const slug = parsed.pathname === '/' ? 'index' : parsed.pathname.replace(/\//g, '_');
-    const htmlPath = path.join(baseDir, `${slug}.html`);
-    fs.writeFileSync(htmlPath, $.html());
-    console.log(`💾 Saved rewritten page: ${htmlPath}`);
+  // Download all unique assets
+  for (const [remoteUrl, localPath] of assetMap.entries()) {
+    try {
+      const response = await axios.get(remoteUrl, { responseType: 'arraybuffer' });
+      fs.writeFileSync(localPath, response.data);
+      console.log(`📦 Downloaded asset: ${remoteUrl}`);
+    } catch (err) {
+      console.warn(`⚠️ Failed to download asset: ${remoteUrl} (${err.message})`);
+    }
   }
 }
 

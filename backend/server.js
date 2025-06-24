@@ -49,6 +49,9 @@ app.post('/api/archive', async (req, res) => {
     const parsed = new URL(url);
     const domain = parsed.hostname;
 
+    // Debug: Log original HTML snippet
+    console.log('🔍 Original HTML snippet:', Object.values(pages)[0].substring(0, 200));
+
     // Convert /newshour/ → ['newshour']
     const subpath = parsed.pathname.replace(/^\/|\/$/g, '');
     const pathSegments = subpath ? subpath.split('/') : [];
@@ -58,6 +61,9 @@ app.post('/api/archive', async (req, res) => {
     fs.mkdirSync(baseDir, { recursive: true });
 
     await rewriteAndDownloadAssets(pages, baseDir);
+
+    // Debug: Log rewritten HTML snippet
+    console.log('🔍 Rewritten HTML snippet:', Object.values(pages)[0].substring(0, 200));
 
     // Save each page
     let entrySnapshot = null;
@@ -73,6 +79,10 @@ app.post('/api/archive', async (req, res) => {
       }
 
       const filePath = path.join(baseDir, filename);
+      
+      // Debug: Log what HTML is being saved
+      console.log(`💾 Saving HTML for ${pageUrl} (${html.length} chars): ${html.substring(0, 100)}...`);
+      
       fs.writeFileSync(filePath, html);
 
       if (pageUrl === url) {
