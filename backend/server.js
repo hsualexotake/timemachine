@@ -45,12 +45,27 @@ app.post('/api/archive', async (req, res) => {
   }
 
   try {
-    const pages = await crawl(url, depth);
+    console.log(`🚀 Starting archive for: ${url} (depth: ${depth})`);
+    
+    // Add memory monitoring
+    const startMemory = process.memoryUsage();
+    console.log(`📊 Initial memory usage: ${Math.round(startMemory.heapUsed / 1024 / 1024)}MB`);
+    
+    const pages = await crawl(url, depth, 100); // Increased from 25 to 100 pages
+    
+    const memoryAfterCrawl = process.memoryUsage();
+    console.log(`📊 Memory after crawl: ${Math.round(memoryAfterCrawl.heapUsed / 1024 / 1024)}MB`);
+    
+    if (Object.keys(pages).length === 0) {
+      return res.status(500).json({ error: 'No pages could be crawled from the provided URL' });
+    }
+    
     const parsed = new URL(url);
     const domain = parsed.hostname;
 
     // Debug: Log original HTML snippet
-    console.log('🔍 Original HTML snippet:', Object.values(pages)[0].substring(0, 200));
+    const firstPageHtml = Object.values(pages)[0];
+    console.log('🔍 Original HTML snippet:', firstPageHtml.substring(0, 200));
 
     // Convert /newshour/ → ['newshour']
     const subpath = parsed.pathname.replace(/^\/|\/$/g, '');
@@ -60,7 +75,11 @@ app.post('/api/archive', async (req, res) => {
     const baseDir = path.join(__dirname, '..', 'archives', domain, ...pathSegments, timestamp);
     fs.mkdirSync(baseDir, { recursive: true });
 
-    await rewriteAndDownloadAssets(pages, baseDir);
+    console.log('🔄 Starting asset rewriting...');
+    await rewriteAndDownloadAssets(pages, baseDir, url);
+
+    const memoryAfterAssets = process.memoryUsage();
+    console.log(`📊 Memory after asset processing: ${Math.round(memoryAfterAssets.heapUsed / 1024 / 1024)}MB`);
 
     // Debug: Log rewritten HTML snippet
     console.log('🔍 Rewritten HTML snippet:', Object.values(pages)[0].substring(0, 200));
@@ -98,16 +117,36 @@ app.post('/api/archive', async (req, res) => {
       entrySnapshot || 'index.html'
     ).replace(/\\/g, '/'); // Normalize slashes (for Windows)
 
+    const finalMemory = process.memoryUsage();
+    console.log(`📊 Final memory usage: ${Math.round(finalMemory.heapUsed / 1024 / 1024)}MB`);
+    console.log(`✅ Archive complete: ${Object.keys(pages).length} pages saved`);
+
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+      console.log('🗑️ Garbage collection triggered');
+    }
+
     res.status(200).json({
       message: 'Archive complete',
       snapshotPath,
       url,
       timestamp,
       status: 'success',
+      pagesArchived: Object.keys(pages).length
     });
   } catch (err) {
     console.error('❌ Archiving error:', err.message);
-    res.status(500).json({ error: 'Failed to archive site' });
+    console.error('❌ Stack trace:', err.stack);
+    
+    // Check if it's a memory error
+    if (err.message.includes('heap') || err.message.includes('memory')) {
+      res.status(500).json({ 
+        error: 'The website is too large to archive. Try a smaller site or increase server memory.' 
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to archive site: ' + err.message });
+    }
   }
 });
 

@@ -1,0 +1,1 @@
+class MenuIcon extends HTMLElement{connectedCallback(){this.addEventListener("click",this.onClick)}onClick(){this.bodyEl.classList.toggle("show-left-nav")}get bodyEl(){return this._bodyEl||(this._bodyEl=document.querySelector("body")),this._bodyEl}}customElements.define("menu-icon-wc",MenuIcon);

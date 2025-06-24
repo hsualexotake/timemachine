@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:memory": "node --max-old-space-size=4096 server.js",
     "dev": "node server.js",
+    "dev:memory": "node --max-old-space-size=4096 server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

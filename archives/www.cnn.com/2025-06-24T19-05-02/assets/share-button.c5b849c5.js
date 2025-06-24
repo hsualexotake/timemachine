@@ -1,0 +1,1 @@
+class ShareButton extends HTMLElement{connectedCallback(){navigator.share&&(this.classList.add("show"),this.addEventListener("click",this.onClick))}onClick(){navigator.share({title:document.title,url:location.href})}}customElements.define("share-button-wc",ShareButton);
