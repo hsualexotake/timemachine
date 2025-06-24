@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[47026],{34646:function(n,_,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/draft/[season]/prospects",function(){return u(40791)}])}},function(n){n.O(0,[99940,41470,17631,50924,38134,24821,60423,40791,49774,92888,40179],(function(){return _=34646,n(n.s=_);var _}));var _=n.O();_N_E=_}]);

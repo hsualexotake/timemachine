@@ -164,7 +164,7 @@ function App() {
                     ) : apiStatus ? (
                       <>
                         <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                        <span className="text-green-400 text-base">Connected - Ready to Archive</span>
+                        <span className="text-green-400 text-base">Connected - Ready</span>
                       </>
                     ) : (
                       <>

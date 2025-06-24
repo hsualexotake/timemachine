@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[12379],{2646:function(n,_,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/stats/players/bio",function(){return u(94123)}])}},function(n){n.O(0,[99940,17631,50924,62058,21062,19905,97623,38134,17659,6066,27849,49774,92888,40179],(function(){return _=2646,n(n.s=_);var _}));var _=n.O();_N_E=_}]);
