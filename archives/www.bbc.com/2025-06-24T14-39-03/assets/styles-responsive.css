@@ -1,0 +1,60 @@
+@media all and (max-width: 359px)
+{
+	#footer-link-break
+	{
+		display: block;
+	}
+
+	#footer-link-break + a
+	{
+		margin-left: 0;
+	}
+}
+
+@media all and (min-width: 992px)
+{
+	.mobile-only
+	{
+		display: none;
+	}
+
+	.desktop-only
+	{
+		display: block;
+	}
+
+	.desktop-h-80
+	{
+		height: 80px !important;
+	}
+
+	header
+	{
+		padding: 17px 0;
+	}
+
+	#title
+	{
+		font-size:      38px;
+		line-height:    44px;
+		letter-spacing: -0.76px;
+	}
+
+	#contact-container
+	{
+		border-bottom: 1px solid #e6e8ea;
+	}
+
+	#contact-wrapper
+	{
+		flex-direction: row;
+	}
+
+
+	#contact-wrapper > div
+	{
+		border-bottom: none;
+		padding:       0;
+	}
+}
+
