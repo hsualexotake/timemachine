@@ -113,14 +113,88 @@ app.post('/api/archive', async (req, res) => {
 
 // (Optional) GET /api/snapshots stub
 app.get('/api/snapshots', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      url: 'https://example.com',
-      timestamp: new Date().toISOString(),
-      status: 'completed'
+  const { url } = req.query;
+  
+  if (!url) {
+    return res.status(400).json({ error: 'URL parameter is required' });
+  }
+
+  try {
+    const parsed = new URL(url);
+    const domain = parsed.hostname;
+    
+    // Handle pathname more carefully - if it's just "/" or empty, don't add path segments
+    let pathSegments = [];
+    if (parsed.pathname && parsed.pathname !== '/') {
+      const subpath = parsed.pathname.replace(/^\/|\/$/g, '');
+      pathSegments = subpath ? subpath.split('/') : [];
     }
-  ]);
+    
+    const domainDir = path.join(__dirname, '..', 'archives', domain, ...pathSegments);
+    
+    if (!fs.existsSync(domainDir)) {
+      return res.json([]);
+    }
+
+    const snapshots = [];
+    const dirContents = fs.readdirSync(domainDir, { withFileTypes: true });
+    
+    const timestampDirs = dirContents
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name)
+      .sort((a, b) => b.localeCompare(a)); // Sort newest first
+
+    for (const timestamp of timestampDirs) {
+      try {
+        const snapshotDir = path.join(domainDir, timestamp);
+        const files = fs.readdirSync(snapshotDir);
+        const entryFile = files.includes('index.html') ? 'index.html' : files.find(f => f.endsWith('.html'));
+        
+        if (entryFile) {
+          const snapshotPath = path.join('/snapshots', domain, ...pathSegments, timestamp, entryFile).replace(/\\/g, '/');
+          
+          // Parse timestamp more carefully
+          let parsedDate;
+          let displayDate;
+          try {
+            // The format is YYYY-MM-DDTHH-mm-ss, so we need to use the correct dayjs format
+            // Convert the timestamp to a format dayjs can understand
+            const isoString = timestamp.replace(/T/, 'T').replace(/-/g, ':', 3);
+            // This converts "2025-06-24T11-34-37" to "2025-06-24T11:34:37"
+            const properFormat = timestamp.replace(/T(\d{2})-(\d{2})-(\d{2})$/, 'T$1:$2:$3');
+            
+            parsedDate = dayjs(properFormat);
+            
+            if (parsedDate.isValid()) {
+              displayDate = parsedDate.format('MMM D, YYYY h:mm A');
+            } else {
+              // Fallback to showing the raw timestamp in a readable format
+              displayDate = timestamp.replace('T', ' at ').replace(/-/g, ':', 3);
+            }
+          } catch (dateErr) {
+            console.error(`❌ Date parsing error for ${timestamp}:`, dateErr.message);
+            displayDate = timestamp.replace('T', ' at ').replace(/-/g, ':', 3);
+          }
+          
+          snapshots.push({
+            id: timestamp,
+            url,
+            timestamp: parsedDate && parsedDate.isValid() ? parsedDate.toISOString() : new Date().toISOString(),
+            snapshotPath,
+            displayDate
+          });
+        }
+      } catch (snapshotErr) {
+        console.error(`❌ Error processing snapshot ${timestamp}:`, snapshotErr.message);
+        // Continue with other snapshots
+      }
+    }
+
+    res.json(snapshots);
+  } catch (err) {
+    console.error('❌ Error fetching snapshots:', err.message);
+    res.status(500).json({ error: 'Failed to fetch snapshots' });
+  }
 });
 
 // Start the server
