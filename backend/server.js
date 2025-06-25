@@ -7,6 +7,7 @@ const { URL } = require('url');
 
 const crawl = require('./archive/crawler');
 const rewriteAndDownloadAssets = require('./archive/assetHelper');
+const { generateDiff } = require('./archive/diffEngine');
 
 const app = express();
 const PORT = 3000;
@@ -100,7 +101,7 @@ app.post('/api/archive', async (req, res) => {
       const filePath = path.join(baseDir, filename);
       
       // Debug: Log what HTML is being saved
-      console.log(`💾 Saving HTML for ${pageUrl} (${html.length} chars): ${html.substring(0, 100)}...`);
+      console.log(`�� Saving HTML for ${pageUrl} (${html.length} chars): ${html.substring(0, 100)}...`);
       
       fs.writeFileSync(filePath, html);
 
@@ -235,6 +236,105 @@ app.get('/api/snapshots', (req, res) => {
     res.status(500).json({ error: 'Failed to fetch snapshots' });
   }
 });
+
+// POST /api/compare → Compare two snapshots
+app.post('/api/compare', async (req, res) => {
+  const { url, snapshot1Id, snapshot2Id } = req.body;
+
+  if (!url || !snapshot1Id || !snapshot2Id) {
+    return res.status(400).json({ 
+      error: 'URL, snapshot1Id, and snapshot2Id are required' 
+    });
+  }
+
+  try {
+    console.log(`🔍 Comparing snapshots: ${snapshot1Id} vs ${snapshot2Id} for ${url}`);
+    
+    const parsed = new URL(url);
+    const domain = parsed.hostname;
+    
+    // Handle pathname more carefully
+    let pathSegments = [];
+    if (parsed.pathname && parsed.pathname !== '/') {
+      const subpath = parsed.pathname.replace(/^\/|\/$/g, '');
+      pathSegments = subpath ? subpath.split('/') : [];
+    }
+    
+    const domainDir = path.join(__dirname, '..', 'archives', domain, ...pathSegments);
+    
+    // Build paths to the snapshot files
+    const snapshot1Dir = path.join(domainDir, snapshot1Id);
+    const snapshot2Dir = path.join(domainDir, snapshot2Id);
+    
+    // Find the main HTML files for each snapshot
+    const findMainHtml = (snapshotDir) => {
+      if (!fs.existsSync(snapshotDir)) {
+        throw new Error(`Snapshot directory not found: ${snapshotDir}`);
+      }
+      
+      const files = fs.readdirSync(snapshotDir);
+      const htmlFile = files.includes('index.html') ? 'index.html' : files.find(f => f.endsWith('.html'));
+      
+      if (!htmlFile) {
+        throw new Error(`No HTML file found in snapshot: ${snapshotDir}`);
+      }
+      
+      return path.join(snapshotDir, htmlFile);
+    };
+    
+    const snapshot1Path = findMainHtml(snapshot1Dir);
+    const snapshot2Path = findMainHtml(snapshot2Dir);
+    
+    // Generate the diff
+    const diffResult = await generateDiff(snapshot1Path, snapshot2Path);
+    
+    if (!diffResult.success) {
+      return res.status(500).json({ 
+        error: 'Failed to generate diff: ' + diffResult.error 
+      });
+    }
+    
+    // Add snapshot metadata
+    const response = {
+      ...diffResult,
+      snapshots: {
+        snapshot1: {
+          id: snapshot1Id,
+          displayDate: formatSnapshotDate(snapshot1Id)
+        },
+        snapshot2: {
+          id: snapshot2Id,
+          displayDate: formatSnapshotDate(snapshot2Id)
+        }
+      },
+      url,
+      comparisonTimestamp: new Date().toISOString()
+    };
+    
+    console.log(`✅ Comparison complete: ${diffResult.changes.summary.totalChanges} changes found`);
+    
+    res.json(response);
+  } catch (err) {
+    console.error('❌ Comparison error:', err.message);
+    res.status(500).json({ error: 'Failed to compare snapshots: ' + err.message });
+  }
+});
+
+// Helper function to format snapshot date (reused from existing code)
+function formatSnapshotDate(timestamp) {
+  try {
+    const properFormat = timestamp.replace(/T(\d{2})-(\d{2})-(\d{2})$/, 'T$1:$2:$3');
+    const parsedDate = dayjs(properFormat);
+    
+    if (parsedDate.isValid()) {
+      return parsedDate.format('MMM D, YYYY h:mm A');
+    } else {
+      return timestamp.replace('T', ' at ').replace(/-/g, ':', 3);
+    }
+  } catch (dateErr) {
+    return timestamp.replace('T', ' at ').replace(/-/g, ':', 3);
+  }
+}
 
 // Start the server
 app.listen(PORT, () => {

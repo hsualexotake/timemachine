@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ComparisonModal from './components/ComparisonModal';
 
 function App() {
   const [apiStatus, setApiStatus] = useState(null);
@@ -11,6 +12,7 @@ function App() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [fetchingSnapshots, setFetchingSnapshots] = useState(false);
   const [appError, setAppError] = useState(null);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   // Error boundary effect
   useEffect(() => {
@@ -106,6 +108,13 @@ function App() {
     }
   };
 
+  const handleCompareSnapshots = () => {
+    if (existingSnapshots.length < 2) {
+      return; // Need at least 2 snapshots to compare
+    }
+    setShowComparisonModal(true);
+  };
+
   if (appError) {
     return (
       <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
@@ -146,7 +155,7 @@ function App() {
             {/* Main Card Content */}
             <div className="p-12">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-semibold text-yellow-50">Time Machine</h2>
+                <h2 className="text-2xl font-semibold text-yellow-50">Capture, View, and Compare</h2>
                 <div className="text-neutral-400 text-base">
                   {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </div>
@@ -154,7 +163,7 @@ function App() {
               
               <div className="flex items-center space-x-4 mb-8">
                 <div>
-                  <h3 className="text-yellow-50 font-medium text-lg">DeLorean</h3>
+                  <h3 className="text-yellow-50 font-medium text-lg">Time Machine</h3>
                   <div className="flex items-center space-x-2">
                     {loading ? (
                       <>
@@ -235,7 +244,20 @@ function App() {
                   
                   <div className="relative z-20 mb-6">
                     <div className="bg-neutral-700/90 backdrop-blur-sm border border-neutral-600/50 rounded-2xl shadow-2xl p-6">
-                      <h4 className="text-yellow-50 font-medium mb-4 text-lg">Existing Snapshots</h4>
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-yellow-50 font-medium text-lg">Existing Snapshots</h4>
+                        {existingSnapshots.length >= 2 && (
+                          <button
+                            onClick={handleCompareSnapshots}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span>Compare</span>
+                          </button>
+                        )}
+                      </div>
                       {(() => {
                         try {
                           const snapshots = Array.isArray(existingSnapshots) ? existingSnapshots : [];
@@ -338,6 +360,14 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Comparison Modal */}
+      <ComparisonModal
+        isOpen={showComparisonModal}
+        onClose={() => setShowComparisonModal(false)}
+        snapshots={existingSnapshots}
+        inputUrl={inputUrl}
+      />
     </div>
   );
 }

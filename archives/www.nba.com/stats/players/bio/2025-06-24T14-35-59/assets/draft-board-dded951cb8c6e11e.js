@@ -1,1 +1,0 @@
-(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[68699],{20266:function(n,_,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/draft/[season]/draft-board",function(){return u(7417)}])}},function(n){n.O(0,[99940,17631,38134,24821,46587,49774,92888,40179],(function(){return _=20266,n(n.s=_);var _}));var _=n.O();_N_E=_}]);
