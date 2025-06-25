@@ -1,1 +1,0 @@
-(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[63084],{80215:function(n,_,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/players/transactions",function(){return u(36739)}])}},function(n){n.O(0,[99940,17631,50924,62058,72253,49774,92888,40179],(function(){return _=80215,n(n.s=_);var _}));var _=n.O();_N_E=_}]);
